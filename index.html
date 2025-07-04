@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name - Links</title>
+    
+    <!-- 外部ライブラリの読み込み -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- CSSをHTMLに直接埋め込み -->
+    <style>
+        /* --- アニメーション定義 --- */
+        @keyframes animated-gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 基本スタイル */
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            /* 動きのあるグラデーション背景 */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: animated-gradient 15s ease infinite;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* 全体を囲むコンテナ */
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px); /* すりガラス効果 */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* プロフィール画像 */
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            animation: slideUp 0.5s forwards ease-out 0.2s;
+        }
+
+        /* 名前 */
+        .name {
+            font-size: 2em;
+            margin: 20px 0 10px;
+            font-weight: 700;
+            color: #2c3e50;
+            opacity: 0;
+            animation: slideUp 0.5s forwards ease-out 0.3s;
+        }
+
+        /* 紹介文 */
+        .bio {
+            font-size: 1em;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: slideUp 0.5s forwards ease-out 0.4s;
+        }
+
+        /* リンクボタンのコンテナ */
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* リンクボタン */
+        .link-button {
+            display: flex; /* アイコンとテキストを横並びにする */
+            align-items: center;
+            justify-content: center;
+            background-color: #3498db; /* デフォルト色 */
+            color: white;
+            padding: 15px 20px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            opacity: 0; /* アニメーションのために初期状態を透明に */
+            animation: slideUp 0.5s forwards ease-out;
+        }
+
+        /* リンクボタンのアイコン */
+        .link-button i {
+            margin-right: 12px;
+            font-size: 1.2em;
+            width: 20px; /* アイコンの幅を固定してテキストのガタつきを防ぐ */
+            text-align: center;
+        }
+
+        /* アニメーションの遅延設定（順番に表示されるように） */
+        .links a:nth-child(1) { animation-delay: 0.5s; }
+        .links a:nth-child(2) { animation-delay: 0.6s; }
+        .links a:nth-child(3) { animation-delay: 0.6s; }
+        .links a:nth-child(4) { animation-delay: 0.65s; }
+        .links a:nth-child(5) { animation-delay: 0.7s; }
+        .links a:nth-child(6) { animation-delay: 0.75s; }
+        .links a:nth-child(7) { animation-delay: 0.8s; }
+        .links a:nth-child(8) { animation-delay: 0.85s; }
+        .links a:nth-child(9) { animation-delay: 0.9s; }
+        .links a:nth-child(10) { animation-delay: 0.95s; }
+
+        /* ボタンのホバーエフェクト */
+        .link-button:hover {
+            transform: translateY(-3px) scale(1.03); /* 少し上に移動して拡大 */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* 影を濃くする */
+        }
+ 
+        /* 各ボタンの配色 */
+        .link-button.x         { background-color: #000000; }
+        .link-button.threads   { background-color: #000000; }
+        .link-button.instagram { background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); }
+        .link-button.youtube   { background-color: #FF0000; }
+        .link-button.line      { background-color: #06C755; }
+        .link-button.linevoom  { background-color: #06C755; }
+        .link-button.discord   { background-color: #5865F2; }
+        .link-button.portfolio { background-color: #34495e; }
+        .link-button.tiktok    { background-color: #000000; }
+        .link-button.contact   { background-color: #7f8c8d; }
+
+        /* フッター */
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- プロフィール画像 -->
+        <img src="https://via.placeholder.com/150" alt="プロフィール画像" class="profile-pic">
+
+        <!-- 名前 -->
+        <h1 class="name">あなたの名前</h1>
+
+        <!-- 紹介文 -->
+        <p class="bio">ここに簡単な自己紹介文を入れます。Webデザイナー / フォトグラファー</p>
+
+        <!-- リンクボタン -->
+        <div class="links">
+            <a href="https://twitter.com/your_account" class="link-button x" target="_blank"><i class="fa-brands fa-x-twitter"></i> X (Twitter)</a>
+            <a href="https://www.threads.net/@your_account" class="link-button threads" target="_blank"><i class="fa-brands fa-threads"></i> Threads</a>
+            <a href="https://instagram.com/your_account" class="link-button instagram" target="_blank"><i class="fa-brands fa-instagram"></i> Instagram</a>
+            <a href="https://www.youtube.com/your_channel" class="link-button youtube" target="_blank"><i class="fa-brands fa-youtube"></i> YouTube</a>
+            <a href="https://tiktok.com/your_account" class="link-button tiktok" target="_blank"><i class="fa-brands fa-tiktok"></i> TikTok</a>
+            <a href="https://line.me/R/ti/p/@your_line_id" class="link-button line" target="_blank"><i class="fa-brands fa-line"></i> LINE</a>
+            <a href="https://linevoom.line.me/user/@your_voom_id" class="link-button linevoom" target="_blank"><i class="fa-solid fa-video"></i> LINE VOOM</a>
+            <a href="https://discord.gg/your_server" class="link-button discord" target="_blank"><i class="fa-brands fa-discord"></i> Discord</a>
+            <a href="https://your-portfolio.com" class="link-button portfolio" target="_blank"><i class="fa-solid fa-globe"></i> Portfolio Site</a>
+            <a href="mailto:your-email@example.com" class="link-button contact" target="_blank"><i class="fa-solid fa-envelope"></i> Contact Me</a>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2024 あなたの名前. All Rights Reserved.</p>
+        </footer>
+    </div>
+
+</body>
+</html>
