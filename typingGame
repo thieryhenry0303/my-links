@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピングゲーム</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column; /* 要素を縦に並べる */
+            padding: 20px 0; /* 上下に余白を追加 */
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        #game-container {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        #word-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #3498db;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake-error {
+            animation: shake 0.3s;
+        }
+
+        #romaji-display span {
+            transition: color 0.2s;
+        }
+
+        #romaji-display span.correct {
+            color: #2ecc71; /* 正解した文字の色 (緑) */
+        }
+
+        #romaji-display span.current {
+            text-decoration: underline; /* 次に入力する文字 */
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #difficulty-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        #romaji-display {
+            font-size: 1.5em;
+            color: #7f8c8d;
+            margin-top: -10px;
+            margin-bottom: 30px;
+            height: 1.5em; /* 領域を確保してレイアウトがガタつくのを防ぐ */
+            letter-spacing: 2px;
+        }
+
+        #word-input {
+            width: 80%;
+            padding: 10px;
+            font-size: 1.2em;
+            text-align: center;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.1em;
+        }
+
+        #start-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .difficulty-btn, #restart-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        #ad-container {
+            margin-top: 30px;
+            width: 90%;
+            max-width: 500px; /* ゲームコンテナの幅に合わせる */
+            min-height: 50px; /* 広告が表示されるまでの最小の高さを確保 */
+            text-align: center;
+        }
+
+        
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>タイピングゲーム</h1>
+
+        <div id="start-screen">
+            <p>難易度を選んでスタート</p>
+            <div id="difficulty-buttons">
+                <button class="difficulty-btn" data-difficulty="easy">簡単 (60秒)</button>
+                <button class="difficulty-btn" data-difficulty="normal">普通 (40秒)</button>
+                <button class="difficulty-btn" data-difficulty="hard">難しい (25秒)</button>
+            </div>
+        </div>
+
+        <div id="game-area" class="hidden">
+            <p id="word-display">ここに単語が表示されます</p>
+            <p id="romaji-display"></p>
+            <div class="stats">
+                <p>スコア: <span id="score">0</span></p>
+                <p>残り時間: <span id="time"></span>秒</p>
+            </div>
+        </div>
+
+        <div id="result-screen" class="hidden">
+            <h2>ゲームオーバー！</h2>
+            <p>スコア: <span id="final-score">0</span></p>
+            <p>ミスタイプ: <span id="mistype-count">0</span></p>
+            <p>WPM: <span id="wpm-count">0</span></p>
+            <p>正解率: <span id="accuracy-rate">0</span>%</p>
+            <button id="restart-button">もう一度プレイ</button>
+        </div>
+    </div>
+
+    <div id="ad-container">
+        <<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8398161859137802"
+     crossorigin="anonymous"></script>>
+        <p style="color: #777; font-size: 0.9em;"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // お題の単語リスト
+            const wordLists = {
+                easy: [ // 3-5文字程度
+                    { ja: '犬', en: 'inu' },
+                    { ja: '猫', en: 'neko' },
+                    { ja: '月', en: 'tsuki' },
+                    { ja: '星', en: 'hoshi' },
+                    { ja: '寿司', en: 'sushi' },
+                    { ja: 'うどん', en: 'udon' },
+                    { ja: '空', en: 'sora' },
+                    { ja: '海', en: 'umi' },
+                    { ja: '山', en: 'yama' },
+                    { ja: '川', en: 'kawa' },
+                    { ja: '花', en: 'hana' },
+                    { ja: '水', en: 'mizu' },
+                    { ja: '火', en: 'hi' },
+                    { ja: '石', en: 'ishi' },
+                    { ja: '夢', en: 'yume' },
+                    { ja: '色', en: 'iro' },
+                    { ja: '歌', en: 'uta' },
+                    { ja: '本', en: 'hon' },
+                    { ja: '箱', en: 'hako' },
+                    { ja: '椅子', en: 'isu' },
+                    { ja: '箸', en: 'hashi' },
+                    { ja: '鍵', en: 'kagi' },
+                    { ja: '傘', en: 'kasa' },
+                    { ja: '雲', en: 'kumo' },
+                    { ja: '雪', en: 'yuki' },
+                    { ja: '風', en: 'kaze' },
+                    { ja: '金', en: 'kane' },
+                    { ja: '映画', en: 'eiga' },
+                    { ja: '世界', en: 'sekai' },
+                    { ja: '日本', en: 'nihon' }
+                ],
+                normal: [ // 6-7文字程度
+                    { ja: 'バナナ', en: 'banana' },
+                    { ja: '苺', en: 'ichigo' },
+                    { ja: '葡萄', en: 'budou' },
+                    { ja: '桜', en: 'sakura' },
+                    { ja: '車', en: 'kuruma' },
+                    { ja: '電車', en: 'densha' },
+                    { ja: '林檎', en: 'ringo' },
+                    { ja: '蜜柑', en: 'mikan' },
+                    { ja: '忍者', en: 'ninja' },
+                    { ja: '兎', en: 'usagi' },
+                    { ja: '太陽', en: 'taiyou' },
+                    { ja: 'ラーメン', en: 'ramen' },
+                    { ja: 'トマト', en: 'tomato' },
+                    { ja: 'カメラ', en: 'kamera' },
+                    { ja: 'テレビ', en: 'terebi' },
+                    { ja: 'ラジオ', en: 'rajio' },
+                    { ja: '時計', en: 'tokei' },
+                    { ja: '眼鏡', en: 'megane' },
+                    { ja: '電話', en: 'denwa' },
+                    { ja: '学校', en: 'gakkou' },
+                    { ja: '先生', en: 'sensei' },
+                    { ja: '生徒', en: 'seito' },
+                    { ja: '家族', en: 'kazoku' },
+                    { ja: '友達', en: 'tomodachi' },
+                    { ja: '仕事', en: 'shigoto' },
+                    { ja: '音楽', en: 'ongaku' },
+                    { ja: 'スポーツ', en: 'supo-tsu' },
+                    { ja: '料理', en: 'ryouri' },
+                    { ja: '野菜', en: 'yasai' },
+                    { ja: '動物', en: 'doubutsu' }
+                ],
+                hard: [ // 8文字以上程度
+                    { ja: '飛行機', en: 'hikouki' },
+                    { ja: '東京', en: 'toukyou' },
+                    { ja: '北海道', en: 'hokkaidou' },
+                    { ja: '沖縄', en: 'okinawa' },
+                    { ja: '天ぷら', en: 'tenpura' },
+                    { ja: '侍', en: 'samurai' },
+                    { ja: 'パソコン', en: 'pasokon' },
+                    { ja: '平和', en: 'heiwa' },
+                    { ja: '自転車', en: 'jitensha' },
+                    { ja: '果物', en: 'kudamono' },
+                    { ja: '新幹線', en: 'shinkansen' },
+                    { ja: '野球', en: 'yakyuu' },
+                    { ja: '水族館', en: 'suizokukan' },
+                    { ja: '動物園', en: 'doubutsuen' },
+                    { ja: '美術館', en: 'bijutsukan' },
+                    { ja: '図書館', en: 'toshokan' },
+                    { ja: '病院', en: 'byouin' },
+                    { ja: '空港', en: 'kuukou' },
+                    { ja: '警察', en: 'keisatsu' },
+                    { ja: '消防署', en: 'shoubousho' },
+                    { ja: '郵便局', en: 'yuubinkyoku' },
+                    { ja: '政治家', en: 'seijika' },
+                    { ja: '経済学', en: 'keizaigaku' },
+                    { ja: 'コンピュータ', en: 'konpyu-ta' },
+                    { ja: 'プログラム', en: 'puroguramu' },
+                    { ja: 'インターネット', en: 'inta-netto' },
+                    { ja: 'スマートフォン', en: 'sumatofon' },
+                    { ja: 'チョコレート', en: 'chokore-to' },
+                    { ja: '環境問題', en: 'kankyoumondai' }
+                ]
+            };
+
+            // DOM要素の取得
+            const gameContainer = document.getElementById('game-container');
+            const wordDisplay = document.getElementById('word-display');
+            const romajiDisplay = document.getElementById('romaji-display');
+            const scoreDisplay = document.getElementById('score');
+            const timeDisplay = document.getElementById('time');
+            const startScreen = document.getElementById('start-screen');
+            const gameArea = document.getElementById('game-area');
+            const resultScreen = document.getElementById('result-screen');
+            const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const mistypeCountDisplay = document.getElementById('mistype-count');
+            const wpmCountDisplay = document.getElementById('wpm-count');
+            const accuracyRateDisplay = document.getElementById('accuracy-rate');
+            const restartButton = document.getElementById('restart-button');
+
+            // 効果音の読み込み
+            const sounds = {
+                type: new Audio('https://soundeffect-lab.info/sound/button/mp3/decision7.mp3'),
+                correct: new Audio('https://soundeffect-lab.info/sound/button/mp3/decision22.mp3'),
+                miss: new Audio('https://soundeffect-lab.info/sound/button/mp3/cancel2.mp3')
+            };
+            // タイプ音は頻繁に鳴るので音量を少し下げる
+            sounds.type.volume = 0.5;
+
+            // 難易度設定 (秒数)
+            const difficultySettings = {
+                easy: 60,
+                normal: 40,
+                hard: 25
+            };
+
+            let score = 0;
+            let time = 0;
+            let gameDuration = 0; // ゲームの総時間（秒）を保持
+            let mistypeCount = 0;
+            let totalTypedChars = 0; // 正しくタイプした総文字数
+            let isPlaying = false;
+            let timer;
+            let currentWord;
+            let currentWordList = [];
+            let currentIndex;
+
+            // イベントリスナーを設定
+            difficultyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const difficulty = button.dataset.difficulty;
+                    gameDuration = difficultySettings[difficulty];
+                    time = gameDuration;
+                    currentWordList = wordLists[difficulty];
+                    startGame();
+                });
+            });
+            restartButton.addEventListener('click', showStartScreen);
+            document.addEventListener('keydown', handleKeydown);
+
+            // ゲーム開始時の処理
+            function startGame() {
+                isPlaying = true;
+                score = 0;
+                mistypeCount = 0;
+                totalTypedChars = 0;
+                scoreDisplay.textContent = score;
+                timeDisplay.textContent = time;
+
+                startScreen.classList.add('hidden');
+                resultScreen.classList.add('hidden');
+                gameArea.classList.remove('hidden');
+
+                showNextWord();
+                timer = setInterval(updateTimer, 1000);
+            }
+
+            // 次の単語を表示する関数
+            function showNextWord() {
+                currentIndex = 0;
+                const randomIndex = Math.floor(Math.random() * currentWordList.length);
+                currentWord = currentWordList[randomIndex];
+                wordDisplay.textContent = currentWord.ja;
+
+                // romaji-displayをspanで分割して生成
+                romajiDisplay.innerHTML = ''; // 以前の単語をクリア
+                currentWord.en.split('').forEach(char => {
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    romajiDisplay.appendChild(span);
+                });
+                // 最初の文字をカレントに設定
+                romajiDisplay.children[0].classList.add('current');
+            }
+
+            // キー入力を処理する関数
+            function handleKeydown(e) {
+                if (!isPlaying) return;
+
+                const key = e.key.toLowerCase();
+                // a-z以外のキーは無視
+                if (key < 'a' || key > 'z') {
+                    return;
+                }
+
+                const targetChar = currentWord.en[currentIndex];
+                const charSpans = romajiDisplay.children;
+
+                if (key === targetChar) {
+                    // 正解のキー
+                    totalTypedChars++;
+                    sounds.type.currentTime = 0;
+                    sounds.type.play();
+
+                    charSpans[currentIndex].classList.remove('current');
+                    charSpans[currentIndex].classList.add('correct');
+                    currentIndex++;
+
+                    if (currentIndex === currentWord.en.length) {
+                        // 単語をクリア
+                        score++;
+                        sounds.correct.currentTime = 0;
+                        sounds.correct.play();
+
+                        scoreDisplay.textContent = score;
+                        setTimeout(showNextWord, 200); // 少し間を置いて次の単語へ
+                    } else {
+                        // 次の文字をカレントに
+                        charSpans[currentIndex].classList.add('current');
+                    }
+                } else {
+                    // 不正解のキー
+                    sounds.miss.currentTime = 0;
+                    sounds.miss.play();
+
+                    mistypeCount++;
+                    gameContainer.classList.add('shake-error');
+                    setTimeout(() => {
+                        gameContainer.classList.remove('shake-error');
+                    }, 300);
+                }
+            }
+
+            // タイマーを更新する関数
+            function updateTimer() {
+                if (time > 0) {
+                    time--;
+                    timeDisplay.textContent = time;
+                } else {
+                    gameOver();
+                }
+            }
+
+            // ゲームオーバー処理
+            function gameOver() {
+                clearInterval(timer);
+                isPlaying = false;
+                romajiDisplay.textContent = ''; // ローマ字表示をクリア
+
+                // WPMと正解率を計算
+                const timeInMinutes = gameDuration / 60;
+                // WPM = (正しく打った文字数 / 5) / プレイ時間(分)
+                const wpm = timeInMinutes > 0 ? Math.round((totalTypedChars / 5) / timeInMinutes) : 0;
+                const totalAttempts = totalTypedChars + mistypeCount;
+                const accuracy = totalAttempts > 0 ? Math.round((totalTypedChars / totalAttempts) * 100) : 0;
+
+                finalScoreDisplay.textContent = score;
+                mistypeCountDisplay.textContent = mistypeCount;
+                wpmCountDisplay.textContent = wpm;
+                accuracyRateDisplay.textContent = accuracy;
+                gameArea.classList.add('hidden');
+                resultScreen.classList.remove('hidden');
+            }
+
+            // スタート画面を表示する関数
+            function showStartScreen() {
+                resultScreen.classList.add('hidden');
+                gameArea.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+            }
+
+        });
+    </script>
+</body>
+</html>
